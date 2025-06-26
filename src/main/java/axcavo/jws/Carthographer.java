@@ -7,7 +7,14 @@ import java.net.URI;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.jsoup.HttpStatusException;
 import org.jsoup.UnsupportedMimeTypeException;
@@ -19,6 +26,7 @@ public class Carthographer {
     public Carthographer(String url) {
         this.url = url;
         this.host = getHost(url);
+        System.out.println(host);
     }
 
     private String getHost(String url) {
@@ -38,25 +46,47 @@ public class Carthographer {
         return new ScrapperConfig(List.of("[href]"));
     }
 
-    public Set<String> chart() {
-        Set<String> visited = new HashSet<>();
-        Set<String> pending = new HashSet<>();
+    public Set<String> chart() throws InterruptedException {
+        Set<String> visited = ConcurrentHashMap.newKeySet();
+        Queue<String> pending = new ConcurrentLinkedDeque<>();
+
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+
         pending.add(url);
+        visited.add(url);
 
-        while (!pending.isEmpty()) {
-            String current = pending.iterator().next();
-            pending.remove(current);
-            visited.add(current);
+        CountDownLatch latch = new CountDownLatch(1);
 
-            for (String link : chart(current)) {
-                if (link != null &&
-                    link.startsWith("https://" + host) &&
-                    !visited.contains(link) &&
-                    !pending.contains(link)) {
-                    pending.add(link);
+        Runnable crawlTask = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(200);
+
+                    String current;
+                    while ((current = pending.poll()) != null) {
+                        Set<String> found = chart(current);
+                        for (String link : found) {
+                            if (link != null &&
+                                link.startsWith("https://" + host + "/players/list/season") &&
+                                visited.add(link)) {
+                                pending.add(link);
+                                executor.submit(this);
+                            }
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    latch.countDown();
                 }
             }
-        }
+        };
+
+        executor.submit(crawlTask);
+        latch.await();
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.MINUTES);
 
         return visited;
     }
