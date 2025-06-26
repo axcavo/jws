@@ -11,19 +11,21 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 public class Scrapper {
+    private final String name;
     private final String url;
     private final ScrapperConfig config;
     private final ScrapResultMapper mapper;
 
 
-    protected Scrapper(String url, ScrapperConfig config, ScrapResultMapper mapper) {
+    protected Scrapper(String name, String url, ScrapperConfig config, ScrapResultMapper mapper) {
+        this.name = name;
         this.url = url;
         this.config = config;
         this.mapper = mapper;
     }
 
     protected void log(String message) {
-        System.out.println("[Scrapper]: " + message);
+        System.out.println("[Scrapper " + name + "]: " + message);
     }
 
     public ScrapResult scrap() throws HttpStatusException, MalformedURLException, UnsupportedMimeTypeException, SocketTimeoutException, IOException {

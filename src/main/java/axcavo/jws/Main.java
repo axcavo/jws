@@ -5,8 +5,9 @@ import java.io.IOException;
 public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
         CartographerFleet fleet = new CartographerFleet(
+            "GOL",
             "https://gol.gg/champion/list/season-S15/split-Spring/tournament-ALL/", 
-            "/champion/list/season", 5, 
+            "/champion/list/season", 10, 
             200);
 
         long start = System.currentTimeMillis();

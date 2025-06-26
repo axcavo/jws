@@ -13,10 +13,12 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.UnsupportedMimeTypeException;
 
 public class Cartographer {
+    private final String name;
     private final String host;
     private final String urlFilter;
 
-    public Cartographer(String baseUrl, String urlFilter) {
+    public Cartographer(String name, String baseUrl, String urlFilter) {
+        this.name = name;
         this.host = extractHost(baseUrl);
         this.urlFilter = urlFilter;
     }
@@ -31,7 +33,7 @@ public class Cartographer {
     }
 
     private Scrapper scrapper(String url) {
-        return new Scrapper(url, new ScrapperConfig(List.of("[href]")), new CartographerResultMapper());
+        return new Scrapper(name, url, new ScrapperConfig(List.of("[href]")), new CartographerResultMapper());
     }
 
     public Set<String> chart(String url) {
@@ -54,6 +56,7 @@ public class Cartographer {
             scrapper.log("IO exception accessing '" + scrapper.getUrl() + "'.");
         }
 
+        scrapper.log("Successfully scrapped '" + url +"'.");
         return result;
     }
 
