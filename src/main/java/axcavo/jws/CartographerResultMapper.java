@@ -3,7 +3,7 @@ package axcavo.jws;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class CarthographerResultMapper implements ScrapResultMapper {
+public class CartographerResultMapper implements ScrapResultMapper {
     @Override
     public ScrapResult map(Elements elements) {
         ScrapResult scrapResult = new ScrapResult();
